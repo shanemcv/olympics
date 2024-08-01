@@ -18,10 +18,10 @@ def olympic(countries):
 #output a list with name and score
     list = [(country['name'], country['score']) for country in ranked_countries]
 
-return list
+    return list
 
 #install library for web scraping
-pip install requests beautifulsoup4
+import pip
 
 #conduct web scraping
 import requests
@@ -29,7 +29,7 @@ from bs4 import BeautifulSoup
 
 def get_medal_data(url):
     response = requests.get(url)
-    if response.status_code != 200
+    if response.status_code != 200:
         print("Failed to retrieve the webpage")
         return []
         
@@ -45,12 +45,13 @@ def get_medal_data(url):
         country = {'name':cells[0].get_text(strip=True),'gold':int(cells[1].get_text(strip=True)),'silver':int(cells[2].get_text(strip=True)),'bronze':int(cells[3].get_text(strip=True))}
         countries.append(country)
         
-return countries
+    return countries
 
 #Test the functions
 url = 'https://olympics.com/en/paris-2024/medals'
 countries = get_medal_data(url)
-print(olympics(countries))
+print(get_medal_data(url))
+print(olympic(countries))
 
 
 
