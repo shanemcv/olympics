@@ -21,7 +21,7 @@ def olympic(countries):
 return list
 
 #install library for web scraping
-!pip install beautifulsoup4
+pip install requests beautifulsoup4
 
 #conduct web scraping
 import requests
@@ -50,7 +50,7 @@ return countries
 #Test the functions
 url = 'https://olympics.com/en/paris-2024/medals'
 countries = get_medal_data(url)
-print olympics(countries)
+print(olympics(countries))
 
 
 
