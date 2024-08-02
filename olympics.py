@@ -1,6 +1,7 @@
 # Shane's Olympic Rankings
 # Contains a function to calculate the rankings, sets up and conducts web scraping to populate the countries variable
 
+#this function calculates my ranking and ouputs a list
 def olympic(countries):
 
 #define value for each medal
@@ -15,44 +16,67 @@ def olympic(countries):
 #sort the countries in descending order by score
     ranked_countries = sorted(countries, key=lambda x:x['score'], reverse=True)
 
+# Add rank to each country
+    for rank, country in enumerate(ranked_countries, start=1):
+        country['rank'] = rank
+
 #output a list with name and score
-    list = [(country['name'], country['score']) for country in ranked_countries]
+    list = [(country['rank'], country['country'], country['score']) for country in ranked_countries]
 
     return list
 
-#install library for web scraping
-import pip
-
-#conduct web scraping
+#set up wikipedia api
 import requests
 from bs4 import BeautifulSoup
 
-def get_medal_data(url):
-    response = requests.get(url)
-    if response.status_code != 200:
-        print("Failed to retrieve the webpage")
-        return []
-        
-    soup = BeautifulSoup(response.content,'html.parser')
-    table = soup.find('table') #may need to adjust based on olympics page
-    countries = []
-    
-    #Assuming the table has the structure with country names and medal counts in specific columns
-    for row in table.find_all('tr')[1:]: #skips header row
-        cells = row.find_all('td')
-        if len(cells) < 4:
+#this function pulls the html of a specific section of a wikipedia page using the wikipedia api
+def fetch_html(title,section):
+    url = 'https://en.wikipedia.org/w/api.php'
+    params = {
+        'action': 'parse',
+        'page': title,
+        'section': section,
+        'format': 'json'
+    }
+    session = requests.Session()
+    response = session.get(url=url, params=params)
+    data = response.json() #Attempt to parse json
+    return data['parse']['text']['*'] 
+
+#this function parses the table from the wikipedia page
+def parse_medal_table(html_content):
+    soup = BeautifulSoup(html_content, 'html.parser')
+    table = soup.find('table', class_='wikitable')
+
+    results = []
+    for row in table.find_all('tr')[1:]: #this skips the header row
+        cells = row.find_all(['th', 'td'])
+        if len(cells) < 6:
             continue
-        country = {'name':cells[0].get_text(strip=True),'gold':int(cells[1].get_text(strip=True)),'silver':int(cells[2].get_text(strip=True)),'bronze':int(cells[3].get_text(strip=True))}
-        countries.append(country)
-        
-    return countries
+        original_rank = cells[0].get_text(strip=True)
+        country = cells[1].get_text(strip=True)
+        gold = int(cells[2].get_text(strip=True))
+        silver = int(cells[3].get_text(strip=True))
+        bronze = int(cells[4].get_text(strip=True))
+        total = int(cells[5].get_text(strip=True))
+        results.append({
+            'original rank': original_rank,
+            'country': country,
+            'gold': gold,
+            'silver': silver,
+            'bronze': bronze,
+            'total': total
+        })
 
+    return results
+    
 #Test the functions
-url = 'https://olympics.com/en/paris-2024/medals'
-countries = get_medal_data(url)
-print(get_medal_data(url))
-print(olympic(countries))
+title = '2024_Summer_Olympics_medal_table'
+section = 2
 
+html_content = fetch_html(title,section)
+countries = parse_medal_table(html_content)
+list = olympic(countries)
 
-
-
+for rank,country, score in list:
+    print(f"{rank}: {country}: {score}\n")
