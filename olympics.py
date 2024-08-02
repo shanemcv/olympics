@@ -1,5 +1,5 @@
 # Shane's Olympic Rankings
-# Contains a function to calculate the rankings, sets up and conducts web scraping to populate the countries variable
+# Contains a function to calculate the rankings, pull html content from wikipedia using their api and parse the medal table
 
 #this function calculates my ranking and ouputs a list
 def olympic(countries):
@@ -25,9 +25,11 @@ def olympic(countries):
 
     return list
 
-#set up wikipedia api
+#set up wikipedia api and csv imports
 import requests
 from bs4 import BeautifulSoup
+import csv
+from datetime import datetime
 
 #this function pulls the html of a specific section of a wikipedia page using the wikipedia api
 def fetch_html(title,section):
@@ -69,7 +71,22 @@ def parse_medal_table(html_content):
         })
 
     return results
-    
+
+#this function creates a csv file with today's date and my rankings
+def save_to_csv(list, base_filename="Shane's Olympic Rankings"):
+    #Get current date
+    today_date = datetime.now().strftime('%Y-%m-%d')
+
+    #create filename with current date
+    filename = f"{base_filename}_{today_date}.csv"
+
+    with open(filename, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Rank', 'Country', 'Score']) #header row
+        writer.writerows(list)
+
+    print(f"File saved successfully to {filename}")
+
 #Test the functions
 title = '2024_Summer_Olympics_medal_table'
 section = 2
@@ -78,5 +95,13 @@ html_content = fetch_html(title,section)
 countries = parse_medal_table(html_content)
 list = olympic(countries)
 
-for rank,country, score in list:
+''' 
+
+You can use the following code to print the rankings instead of saving to csv
+
+for rank,country,score in list:
     print(f"{rank}: {country}: {score}\n")
+
+'''
+
+save_to_csv(list)
